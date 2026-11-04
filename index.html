@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Меню</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  body {
+    margin: 0;
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    background: var(--tg-theme-bg-color, #ffffff);
+    color: var(--tg-theme-text-color, #000000);
+  }
+  header { padding: 16px; font-size: 20px; font-weight: 600; }
+  #search {
+    width: calc(100% - 32px);
+    margin: 0 16px 12px;
+    padding: 10px 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-sizing: border-box;
+  }
+  .item {
+    margin: 8px 16px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--tg-theme-secondary-bg-color, #f2f2f2);
+    cursor: pointer;
+  }
+  .item .name { font-weight: 600; }
+  .details { display: none; margin-top: 10px; font-size: 15px; line-height: 1.4; }
+  .item.open .details { display: block; }
+  .label { font-weight: 600; margin-top: 8px; }
+  .allergens { color: #d33; }
+  #back {
+    display: none;
+    margin: 0 16px 8px;
+    padding: 8px 14px;
+    font-size: 15px;
+    border: none;
+    border-radius: 10px;
+    background: var(--tg-theme-button-color, #2481cc);
+    color: var(--tg-theme-button-text-color, #fff);
+  }
+</style>
+</head>
+<body>
+<header id="title">Меню ресторана</header>
+<button id="back">← Назад к разделам</button>
+<input id="search" type="search" placeholder="Поиск блюда...">
+<div id="list"></div>
+
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+
+  // ============ МЕНЮ РЕСТОРАНА ============
+  // Копируй блоки и меняй текст. Следи за кавычками и запятыми.
+  const MENU = {
+    "Холодные закуски": {
+      "Цезарь с курицей": {
+        composition: "Романо, куриное филе, пармезан, гренки, черри",
+        sauces: "Соус цезарь",
+        allergens: "Глютен, яйцо, молоко, рыба (анчоусы)"
+      },
+      "Греческий салат": {
+        composition: "Огурцы, помидоры, перец, красный лук, маслины, фета",
+        sauces: "Оливковое масло, орегано",
+        allergens: "Молоко"
+      }
+    },
+    "Горячие закуски": {
+      "Жульен": {
+        composition: "Курица, шампиньоны, сливки, сыр",
+        sauces: "Сливочный соус",
+        allergens: "Молоко, глютен"
+      }
+    },
+    "Десерты": {
+      "Чизкейк": {
+        composition: "Сливочный сыр, песочная основа, сливки",
+        sauces: "Ягодный соус",
+        allergens: "Молоко, глютен, яйцо"
+      }
+    }
+  };
+  // ========================================
+
+  const list = document.getElementById("list");
+  const search = document.getElementById("search");
+  const back = document.getElementById("back");
+  const title = document.getElementById("title");
+  let currentSection = null;
+
+  function showSections() {
+    currentSection = null;
+    title.textContent = "Меню ресторана";
+    back.style.display = "none";
+    search.style.display = "block";
+    search.value = "";
+    list.innerHTML = "";
+    Object.keys(MENU).forEach(function (section) {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = '<div class="name"></div>';
+      div.querySelector(".name").textContent = section;
+      div.onclick = function () { showDishes(section); };
+      list.appendChild(div);
+    });
+  }
+
+  function dishCard(name, info) {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML =
+      '<div class="name"></div>' +
+      '<div class="details">' +
+      '<div class="label">Состав</div><div class="c"></div>' +
+      '<div class="label">Соусы</div><div class="s"></div>' +
+      '<div class="label allergens">Аллергены</div><div class="a allergens"></div>' +
+      '</div>';
+    div.querySelector(".name").textContent = name;
+    div.querySelector(".c").textContent = info.composition;
+    div.querySelector(".s").textContent = info.sauces;
+    div.querySelector(".a").textContent = info.allergens;
+    div.onclick = function () { div.classList.toggle("open"); };
+    return div;
+  }
+
+  function showDishes(section) {
+    currentSection = section;
+    title.textContent = section;
+    back.style.display = "block";
+    search.style.display = "none";
+    list.innerHTML = "";
+    Object.keys(MENU[section]).forEach(function (name) {
+      list.appendChild(dishCard(name, MENU[section][name]));
+    });
+  }
+
+  search.addEventListener("input", function () {
+    const q = search.value.trim().toLowerCase();
+    if (!q) { showSections(); return; }
+    list.innerHTML = "";
+    Object.keys(MENU).forEach(function (section) {
+      Object.keys(MENU[section]).forEach(function (name) {
+        if (name.toLowerCase().indexOf(q) !== -1) {
+          list.appendChild(dishCard(name, MENU[section][name]));
+        }
+      });
+    });
+  });
+
+  back.onclick = showSections;
+  showSections();
+</script>
+</body>
+</html>
