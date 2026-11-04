@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -119,6 +119,8 @@
     color: var(--muted);
   }
   .value { margin-top: 4px; font-size: 15px; line-height: 1.45; }
+  .bar-meta { display:flex; justify-content:space-between; gap:12px; color:var(--muted); font-size:14px; margin-top:5px; }
+  .bar-price { color:var(--text); font-weight:700; font-size:16px; white-space:nowrap; }
   .chips { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
   .chip {
     padding: 5px 11px;
@@ -141,11 +143,11 @@
 <body>
 <div class="top">
   <h1 id="title">Меню ресторана</h1>
-  <p id="subtitle">Выбери раздел, чтобы изучить блюда</p>
+  <p id="subtitle">Выбери кухню или бар</p>
 </div>
 <div class="wrap">
   <button id="back">← Назад к разделам</button>
-  <input id="search" type="search" placeholder="🔍  Найти блюдо">
+  <input id="search" type="search" placeholder="🔍  Найти позицию">
   <div id="list"></div>
 </div>
 
@@ -214,6 +216,150 @@
     }
   };
 
+  // Барная карта. Названия, объёмы и цены перенесены с фотографии.
+  // Если на фото объём не указан отдельно, он оставлен в названии категории.
+  const BAR_MENU = {
+    "Вино по бокалам 0,125": [
+      { name: "Вино красное Шато Тамань Селект Руж", volume: "125 мл", price: "350 ₽" },
+      { name: "Вино белое Шато Тамань Селект Блан", volume: "125 мл", price: "350 ₽" },
+      { name: "Шато Тамань Селект Оранжевое", volume: "125 мл", price: "350 ₽" }
+    ],
+    "Вино красное 0,75": [
+      { name: "Шато Тамань Селект Руж", volume: "750 мл", price: "1800 ₽" },
+      { name: "Нино Нюбле Кьянти Руфина Ризерва, Италия", volume: "750 мл", price: "8000 ₽" },
+      { name: "Новьеле ди Монтепульчано, Италия", volume: "750 мл", price: "7500 ₽" },
+      { name: "Каберне Совиньон, Крым", volume: "750 мл", price: "1800 ₽" }
+    ],
+    "Вино белое 0,75": [
+      { name: "Шато Тамань Селект Блан Брют, Россия", volume: "750 мл", price: "2700 ₽" },
+      { name: "Ле Гран Нуар Вайнмейкерс Совиньон Блан, Франция", volume: "750 мл", price: "4700 ₽" },
+      { name: "Каролина Ресерва Шардоне, Чили", volume: "750 мл", price: "4500 ₽" },
+      { name: "Вионье Финка Ла Линда, Аргентина", volume: "750 мл", price: "5500 ₽" },
+      { name: "Гави Иль Валентино, Италия", volume: "750 мл", price: "6200 ₽" },
+      { name: "Пти Шабли, Франция", volume: "750 мл", price: "10700 ₽" },
+      { name: "Портвейн 1879 (белый), Крым", volume: "750 мл", price: "1500 ₽" }
+    ],
+    "Вино розовое 0,75": [
+      { name: "Канти Каберне Розато, Италия", volume: "750 мл", price: "3900 ₽" },
+      { name: "Фантини Черазуоло Д'Абруццо, Италия", volume: "750 мл", price: "3500 ₽" }
+    ],
+    "Вино ликёрное": [
+      { name: "Марсала Супериоре Оро, Италия", volume: "50 мл", price: "280 ₽" },
+      { name: "Марсала Супериоре Оро, Италия", volume: "750 мл", price: "3800 ₽" },
+      { name: "Марсала Фине Рубино Дольче (красное), Италия", volume: "50 мл", price: "230 ₽" }
+    ],
+    "Игристые и шампанские вина 0,75": [
+      { name: "Шато Тамань Селект Блан Брют, Россия", volume: "750 мл", price: "1800 ₽" },
+      { name: "Асти Пьемонт Канти, Италия", volume: "750 мл", price: "5500 ₽" },
+      { name: "Абрау Дюрсо Брют/полусладкое/полусухое, Россия", volume: "750 мл", price: "720 ₽" },
+      { name: "Просекко Фиорино Д'Оро, Италия", volume: "750 мл", price: "3500 ₽" },
+      { name: "Шампанское Моет Шандон Империал Брют, Франция", volume: "750 мл", price: "13000 ₽" }
+    ],
+    "Безалкогольные напитки": [
+      { name: "Лимонад в ассортименте", volume: "500 мл", price: "400 ₽" },
+      { name: "Кола / Спрайт", volume: "330 мл", price: "250 ₽" },
+      { name: "«Добрый» ж/б", volume: "330 мл", price: "250 ₽" },
+      { name: "Сок (стекло)", volume: "200 мл", price: "250 ₽" },
+      { name: "Вода газированная / без газа", volume: "500 мл", price: "150 ₽" },
+      { name: "Вода газированная / без газа", volume: "750 мл", price: "350 ₽" },
+      { name: "Тоник «Эвервесс»", volume: "250 мл", price: "250 ₽" }
+    ],
+    "Фреши": [
+      { name: "Апельсиновый", volume: "200 мл", price: "400 ₽" },
+      { name: "Лимонный", volume: "100 мл", price: "400 ₽" }
+    ],
+    "Чай листовой 1 л": [
+      { name: "Чай в ассортименте", volume: "1 л", price: "650 ₽" },
+      { name: "Лимон / мята / мёд / чабрец", volume: "добавка", price: "50 ₽" }
+    ],
+    "Чай авторский 500 мл": [
+      { name: "Зелёный с облепихой", volume: "500 мл", price: "460 ₽" },
+      { name: "Чёрный с чёрной смородиной", volume: "500 мл", price: "460 ₽" },
+      { name: "Чай пакетированный", volume: "", price: "100 ₽" }
+    ],
+    "Кофе": [
+      { name: "Эспрессо", volume: "30 мл", price: "160 ₽" },
+      { name: "Двойной эспрессо", volume: "60 мл", price: "260 ₽" },
+      { name: "Американо", volume: "150 мл", price: "230 ₽" },
+      { name: "Капучино", volume: "200 мл", price: "290 ₽" },
+      { name: "Латте", volume: "250 мл", price: "330 ₽" },
+      { name: "Горячий шоколад с маршмеллоу", volume: "300 мл", price: "430 ₽" },
+      { name: "Айс кофе Бамбли", volume: "200 мл", price: "330 ₽" },
+      { name: "Флэт Уайт", volume: "200 мл", price: "320 ₽" }
+    ],
+    "Вермуты и аперитивы 50": [
+      { name: "Мартини Бьянко", volume: "50 мл", price: "270 ₽" },
+      { name: "Мартини Фиеро", volume: "50 мл", price: "270 ₽" },
+      { name: "Мартини Экстра Драй", volume: "50 мл", price: "270 ₽" },
+      { name: "Апероль", volume: "50 мл", price: "400 ₽" },
+      { name: "Кампари", volume: "50 мл", price: "350 ₽" }
+    ],
+    "Виски 50": [
+      { name: "Джеймесон", volume: "50 мл", price: "540 ₽" },
+      { name: "Джим Бим", volume: "50 мл", price: "550 ₽" },
+      { name: "Джек Дэниелс", volume: "50 мл", price: "600 ₽" },
+      { name: "Джонни Уокер Блэк Лейбл", volume: "50 мл", price: "750 ₽" },
+      { name: "Джонни Уокер Рэд Лейбл", volume: "50 мл", price: "500 ₽" },
+      { name: "Макалан 12 лет", volume: "50 мл", price: "2500 ₽" },
+      { name: "Чивас Ригал 12 лет", volume: "50 мл", price: "900 ₽" }
+    ],
+    "Водка 50": [
+      { name: "Мамонт", volume: "50 мл", price: "480 ₽" },
+      { name: "Белуга", volume: "50 мл", price: "350 ₽" }
+    ],
+    "Писко 50": [
+      { name: "Мистраль Нобиле", volume: "50 мл", price: "650 ₽" }
+    ],
+    "Граппа 50": [
+      { name: "Рефоско Баррик", volume: "50 мл", price: "570 ₽" }
+    ],
+    "Коньяк и бренди 50": [
+      { name: "Орхеви 5*", volume: "50 мл", price: "350 ₽" },
+      { name: "Айк 7*", volume: "50 мл", price: "400 ₽" },
+      { name: "Мартель VS", volume: "50 мл", price: "950 ₽" },
+      { name: "Мартель VSOP", volume: "50 мл", price: "1200 ₽" },
+      { name: "Мартель XO", volume: "50 мл", price: "3100 ₽" },
+      { name: "Хеннесси VS", volume: "50 мл", price: "900 ₽" },
+      { name: "Хеннесси VSOP", volume: "50 мл", price: "1200 ₽" },
+      { name: "Хеннесси ИКСО", volume: "50 мл", price: "3100 ₽" }
+    ],
+    "Ликёры и биттеры 50": [
+      { name: "Егермейстер", volume: "50 мл", price: "400 ₽" },
+      { name: "Бехеровка", volume: "50 мл", price: "400 ₽" },
+      { name: "Бэйлиз", volume: "50 мл", price: "450 ₽" },
+      { name: "Малибу", volume: "50 мл", price: "350 ₽" },
+      { name: "Бедрен Кофе", volume: "50 мл", price: "390 ₽" },
+      { name: "Самбука Макарти", volume: "50 мл", price: "400 ₽" },
+      { name: "Куантро", volume: "50 мл", price: "450 ₽" },
+      { name: "Драмбуи", volume: "50 мл", price: "450 ₽" }
+    ],
+    "Ром 50": [
+      { name: "Оакхарт", volume: "50 мл", price: "400 ₽" },
+      { name: "Бокал Резерва", volume: "50 мл", price: "900 ₽" },
+      { name: "Эксклюзива Рон Каладос", volume: "50 мл", price: "220 ₽" },
+      { name: "Агуанила Сильвер Драй", volume: "50 мл", price: "350 ₽" }
+    ],
+    "Джин 50": [
+      { name: "Бифитер", volume: "50 мл", price: "450 ₽" }
+    ],
+    "Кальвадос 50": [
+      { name: "Пер Маглуар Файн", volume: "50 мл", price: "1100 ₽" }
+    ],
+    "Текила 50": [
+      { name: "Хосе Куэрво Сильвер", volume: "50 мл", price: "600 ₽" },
+      { name: "Ольмека Голд", volume: "50 мл", price: "650 ₽" },
+      { name: "Ольмека Сильвер", volume: "50 мл", price: "650 ₽" },
+      { name: "Сауза Голд", volume: "50 мл", price: "600 ₽" }
+    ],
+    "Пиво бутылочное": [
+      { name: "Айнгер 0,5", volume: "500 мл", price: "650 ₽" },
+      { name: "Бакалар б/а", volume: "бутылка", price: "500 ₽" }
+    ],
+    "Настойки домашние 50": [
+      { name: "В ассортименте", volume: "50 мл", price: "350 ₽" }
+    ]
+  };
+
   // Иконка и цвет для каждого раздела. Название должно совпадать с MENU.
   // Если раздела здесь нет, он получит иконку и цвет по умолчанию.
   const STYLES = {
@@ -239,36 +385,65 @@
   const title = document.getElementById("title");
   const subtitle = document.getElementById("subtitle");
 
-  function countWord(n) {
+  let currentGroup = null;
+  let currentCategory = null;
+
+  function countWord(n, noun) {
     const m10 = n % 10, m100 = n % 100;
-    if (m10 === 1 && m100 !== 11) return n + " блюдо";
-    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return n + " блюда";
-    return n + " блюд";
+    const forms = noun === "блюдо" ? ["блюдо", "блюда", "блюд"] : ["позиция", "позиции", "позиций"];
+    if (m10 === 1 && m100 !== 11) return n + " " + forms[0];
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return n + " " + forms[1];
+    return n + " " + forms[2];
+  }
+
+  function makeSectionCard(icon, color, name, count, onClick, delay) {
+    const card = document.createElement("div");
+    card.className = "section-card";
+    card.style.background = "linear-gradient(135deg, " + color + ", " + color + "cc)";
+    card.style.animationDelay = (delay * 0.05) + "s";
+    card.innerHTML = '<span class="icon"></span><div class="nm"></div><div class="count"></div>';
+    card.querySelector(".icon").textContent = icon;
+    card.querySelector(".nm").textContent = name;
+    card.querySelector(".count").textContent = count;
+    card.onclick = onClick;
+    return card;
   }
 
   function showSections() {
+    currentGroup = null;
+    currentCategory = null;
     title.textContent = "Меню ресторана";
-    subtitle.textContent = "Выбери раздел, чтобы изучить блюда";
+    subtitle.textContent = "Выбери кухню или бар";
     back.style.display = "none";
     search.style.display = "block";
     search.value = "";
     list.innerHTML = "";
     const grid = document.createElement("div");
     grid.className = "grid";
-    Object.keys(MENU).forEach(function (section, i) {
-      const st = STYLES[section] || DEFAULT_STYLE;
-      const card = document.createElement("div");
-      card.className = "section-card";
-      card.style.background = "linear-gradient(135deg, " + st.color + ", " + st.color + "cc)";
-      card.style.animationDelay = (i * 0.05) + "s";
-      card.innerHTML = '<span class="icon"></span><div class="nm"></div><div class="count"></div>';
-      card.querySelector(".icon").textContent = st.icon;
-      card.querySelector(".nm").textContent = section;
-      card.querySelector(".count").textContent = countWord(Object.keys(MENU[section]).length);
-      card.onclick = function () { showDishes(section); };
-      grid.appendChild(card);
+    grid.appendChild(makeSectionCard("🍽️", "#b5543a", "Кухня", countWord(Object.values(MENU).reduce((n, section) => n + Object.keys(section).length, 0), "блюдо"), function () { showCategories("kitchen"); }, 0));
+    grid.appendChild(makeSectionCard("🍸", "#3d8fc4", "Бар", countWord(Object.values(BAR_MENU).reduce((n, items) => n + items.length, 0), "позиция"), function () { showCategories("bar"); }, 1));
+    list.appendChild(grid);
+  }
+
+  function showCategories(group) {
+    currentGroup = group;
+    currentCategory = null;
+    const data = group === "bar" ? BAR_MENU : MENU;
+    title.textContent = group === "bar" ? "🍸 Бар" : "🍽️ Кухня";
+    subtitle.textContent = "Выбери категорию";
+    back.style.display = "inline-block";
+    back.textContent = "← Назад к меню";
+    search.style.display = "none";
+    list.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    Object.keys(data).forEach(function (category, i) {
+      const st = STYLES[category] || (group === "bar" ? { icon: "🍷", color: "#8b5a75" } : DEFAULT_STYLE);
+      const count = group === "bar" ? data[category].length : Object.keys(data[category]).length;
+      grid.appendChild(makeSectionCard(st.icon, st.color, category, countWord(count, group === "bar" ? "позиция" : "блюдо"), function () { showDishes(category); }, i));
     });
     list.appendChild(grid);
+    window.scrollTo(0, 0);
   }
 
   function allergenChips(text) {
@@ -310,16 +485,46 @@
     return div;
   }
 
+  function barCard(item, delay) {
+    const div = document.createElement("div");
+    div.className = "dish";
+    div.style.animationDelay = (delay || 0) + "s";
+    const head = document.createElement("div");
+    head.className = "dish-head";
+    const name = document.createElement("span");
+    name.className = "nm";
+    name.textContent = item.name;
+    const price = document.createElement("span");
+    price.className = "bar-price";
+    price.textContent = item.price || "";
+    head.appendChild(name);
+    head.appendChild(price);
+    const meta = document.createElement("div");
+    meta.className = "bar-meta";
+    meta.style.padding = "0 16px 15px";
+    meta.textContent = item.volume || "";
+    div.appendChild(head);
+    div.appendChild(meta);
+    return div;
+  }
+
   function showDishes(section) {
-    const st = STYLES[section] || DEFAULT_STYLE;
+    currentCategory = section;
+    const isBar = currentGroup === "bar";
+    const st = STYLES[section] || (isBar ? { icon: "🍷" } : DEFAULT_STYLE);
     title.textContent = st.icon + " " + section;
-    subtitle.textContent = "Нажми на блюдо, чтобы увидеть состав";
+    subtitle.textContent = isBar ? "Название, объём и стоимость" : "Нажми на блюдо, чтобы увидеть состав";
     back.style.display = "inline-block";
+    back.textContent = "← Назад к категориям";
     search.style.display = "none";
     list.innerHTML = "";
-    Object.keys(MENU[section]).forEach(function (name, i) {
-      list.appendChild(dishCard(name, MENU[section][name], i * 0.05));
-    });
+    if (isBar) {
+      BAR_MENU[section].forEach(function (item, i) { list.appendChild(barCard(item, i * 0.04)); });
+    } else {
+      Object.keys(MENU[section]).forEach(function (name, i) {
+        list.appendChild(dishCard(name, MENU[section][name], i * 0.05));
+      });
+    }
     window.scrollTo(0, 0);
   }
 
@@ -336,6 +541,14 @@
         }
       });
     });
+    Object.keys(BAR_MENU).forEach(function (section) {
+      BAR_MENU[section].forEach(function (item) {
+        if (item.name.toLowerCase().indexOf(q) !== -1 || section.toLowerCase().indexOf(q) !== -1) {
+          list.appendChild(barCard(item, found * 0.04));
+          found++;
+        }
+      });
+    });
     if (!found) {
       const e = document.createElement("div");
       e.className = "empty";
@@ -344,7 +557,10 @@
     }
   });
 
-  back.onclick = showSections;
+  back.onclick = function () {
+    if (currentCategory !== null) showCategories(currentGroup);
+    else showSections();
+  };
   showSections();
 </script>
 </body>
