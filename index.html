@@ -1,4 +1,160 @@
-// ============ МЕНЮ РЕСТОРАНА ============
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Меню</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: #fbf6ee;
+    --card: #ffffff;
+    --text: #3b2f2a;
+    --muted: #8a7a6f;
+    --accent: #e07a3f;
+    --accent-soft: #fde9d9;
+    --line: #efe3d3;
+    --shadow: 0 4px 14px rgba(120, 80, 40, 0.10);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding-bottom: 30px;
+  }
+  .top {
+    padding: 22px 18px 14px;
+    background: linear-gradient(135deg, #fde9d9 0%, #fbf6ee 100%);
+    border-bottom: 1px solid var(--line);
+  }
+  .top h1 { margin: 0; font-size: 24px; font-weight: 700; }
+  .top p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+  .wrap { padding: 14px 16px; }
+
+  #search {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 16px;
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    background: var(--card);
+    color: var(--text);
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  #search:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+
+  #back {
+    display: none;
+    margin-bottom: 12px;
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    cursor: pointer;
+    transition: transform .15s, background .2s;
+  }
+  #back:active { transform: scale(0.96); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .section-card {
+    border-radius: 18px;
+    padding: 18px 12px;
+    text-align: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 16px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform .15s, box-shadow .2s, filter .2s;
+    animation: pop .4s ease both;
+  }
+  .section-card:hover { filter: brightness(1.06); box-shadow: 0 8px 22px rgba(120, 80, 40, 0.22); }
+  .section-card:active { transform: scale(0.95); }
+  .section-card .icon { font-size: 34px; display: block; margin-bottom: 6px; }
+  .section-card .count { font-size: 12px; font-weight: 500; opacity: .9; margin-top: 2px; }
+
+  .dish {
+    background: var(--card);
+    border-radius: 16px;
+    margin-top: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: pop .35s ease both;
+  }
+  .dish-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    font-weight: 600;
+    font-size: 17px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .dish-head:active { background: var(--accent-soft); }
+  .arrow { color: var(--accent); font-size: 18px; transition: transform .25s; }
+  .dish.open .arrow { transform: rotate(180deg); }
+  .dish-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .35s ease;
+    padding: 0 16px;
+  }
+  .dish.open .dish-body { max-height: 600px; padding-bottom: 16px; }
+  .label {
+    margin-top: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+  }
+  .value { margin-top: 4px; font-size: 15px; line-height: 1.45; }
+  .chips { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #fde2e0;
+    color: #c0392b;
+  }
+  .chip.none { background: #e3f4e3; color: #2e7d32; }
+
+  .empty { text-align: center; color: var(--muted); padding: 30px 0; }
+
+  @keyframes pop {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="top">
+  <h1 id="title">Меню ресторана</h1>
+  <p id="subtitle">Выбери раздел, чтобы изучить блюда</p>
+</div>
+<div class="wrap">
+  <button id="back">← Назад к разделам</button>
+  <input id="search" type="search" placeholder="🔍  Найти блюдо">
+  <div id="list"></div>
+</div>
+
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+
+  // ============ МЕНЮ РЕСТОРАНА ============
   // ВАЖНО: названия блюд взяты с фото. Состав, соусы и аллергены вписаны
   // по типовым рецептам — сверь их с техкартами кухни, особенно аллергены.
   // Пустая строка allergens: "" покажет зелёную плашку "Нет".
@@ -76,3 +232,120 @@
   };
   const DEFAULT_STYLE = { icon: "🍴", color: "#c9803f" };
   // ========================================
+
+  const list = document.getElementById("list");
+  const search = document.getElementById("search");
+  const back = document.getElementById("back");
+  const title = document.getElementById("title");
+  const subtitle = document.getElementById("subtitle");
+
+  function countWord(n) {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return n + " блюдо";
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return n + " блюда";
+    return n + " блюд";
+  }
+
+  function showSections() {
+    title.textContent = "Меню ресторана";
+    subtitle.textContent = "Выбери раздел, чтобы изучить блюда";
+    back.style.display = "none";
+    search.style.display = "block";
+    search.value = "";
+    list.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    Object.keys(MENU).forEach(function (section, i) {
+      const st = STYLES[section] || DEFAULT_STYLE;
+      const card = document.createElement("div");
+      card.className = "section-card";
+      card.style.background = "linear-gradient(135deg, " + st.color + ", " + st.color + "cc)";
+      card.style.animationDelay = (i * 0.05) + "s";
+      card.innerHTML = '<span class="icon"></span><div class="nm"></div><div class="count"></div>';
+      card.querySelector(".icon").textContent = st.icon;
+      card.querySelector(".nm").textContent = section;
+      card.querySelector(".count").textContent = countWord(Object.keys(MENU[section]).length);
+      card.onclick = function () { showDishes(section); };
+      grid.appendChild(card);
+    });
+    list.appendChild(grid);
+  }
+
+  function allergenChips(text) {
+    const wrap = document.createElement("div");
+    wrap.className = "chips";
+    const parts = text.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+    if (!parts.length) {
+      const c = document.createElement("span");
+      c.className = "chip none";
+      c.textContent = "Нет";
+      wrap.appendChild(c);
+      return wrap;
+    }
+    parts.forEach(function (p) {
+      const c = document.createElement("span");
+      c.className = "chip";
+      c.textContent = "⚠ " + p;
+      wrap.appendChild(c);
+    });
+    return wrap;
+  }
+
+  function dishCard(name, info, delay) {
+    const div = document.createElement("div");
+    div.className = "dish";
+    div.style.animationDelay = (delay || 0) + "s";
+    div.innerHTML =
+      '<div class="dish-head"><span class="nm"></span><span class="arrow">▾</span></div>' +
+      '<div class="dish-body">' +
+      '<div class="label">📋 Состав</div><div class="value c"></div>' +
+      '<div class="label">🥫 Соусы</div><div class="value s"></div>' +
+      '<div class="label">Аллергены</div><div class="al"></div>' +
+      '</div>';
+    div.querySelector(".nm").textContent = name;
+    div.querySelector(".c").textContent = info.composition;
+    div.querySelector(".s").textContent = info.sauces;
+    div.querySelector(".al").appendChild(allergenChips(info.allergens || ""));
+    div.querySelector(".dish-head").onclick = function () { div.classList.toggle("open"); };
+    return div;
+  }
+
+  function showDishes(section) {
+    const st = STYLES[section] || DEFAULT_STYLE;
+    title.textContent = st.icon + " " + section;
+    subtitle.textContent = "Нажми на блюдо, чтобы увидеть состав";
+    back.style.display = "inline-block";
+    search.style.display = "none";
+    list.innerHTML = "";
+    Object.keys(MENU[section]).forEach(function (name, i) {
+      list.appendChild(dishCard(name, MENU[section][name], i * 0.05));
+    });
+    window.scrollTo(0, 0);
+  }
+
+  search.addEventListener("input", function () {
+    const q = search.value.trim().toLowerCase();
+    if (!q) { showSections(); return; }
+    list.innerHTML = "";
+    let found = 0;
+    Object.keys(MENU).forEach(function (section) {
+      Object.keys(MENU[section]).forEach(function (name) {
+        if (name.toLowerCase().indexOf(q) !== -1) {
+          list.appendChild(dishCard(name, MENU[section][name], found * 0.04));
+          found++;
+        }
+      });
+    });
+    if (!found) {
+      const e = document.createElement("div");
+      e.className = "empty";
+      e.textContent = "Ничего не найдено";
+      list.appendChild(e);
+    }
+  });
+
+  back.onclick = showSections;
+  showSections();
+</script>
+</body>
+</html>
