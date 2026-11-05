@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -138,6 +138,22 @@
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  .grid .wide { grid-column: 1 / -1; padding: 30px 12px; font-size: 20px; letter-spacing: .04em; }
+  .section-card.disabled, .section-card.disabled:hover { opacity: .55; cursor: default; filter: grayscale(.4); box-shadow: var(--shadow); }
+  .t-progress { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
+  .t-bar { height: 100%; background: var(--accent); border-radius: 99px; transition: width .35s ease; }
+  .t-q { background: var(--card); border-radius: 16px; padding: 18px 16px; font-size: 18px; font-weight: 600; line-height: 1.4; box-shadow: var(--shadow); margin-bottom: 14px; animation: pop .3s ease both; }
+  .t-opt { display: block; width: 100%; text-align: left; margin-top: 10px; padding: 14px 16px; font: inherit; font-size: 16px; color: var(--text); background: var(--card); border: 2px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); cursor: pointer; transition: transform .15s, border-color .2s, background .2s; animation: pop .3s ease both; }
+  .t-opt:active { transform: scale(0.98); border-color: var(--accent); }
+  .t-opt.right { background: #e3f4e3; border-color: #2e7d32; color: #1f5e23; }
+  .t-opt.wrong { background: #fde2e0; border-color: #c0392b; color: #a52f23; }
+  .t-next { display: block; width: 100%; margin-top: 16px; padding: 14px; font: inherit; font-size: 16px; font-weight: 700; color: #fff; background: var(--accent); border: none; border-radius: 14px; cursor: pointer; transition: transform .15s; }
+  .t-next:active { transform: scale(0.97); }
+  .t-ghost { background: var(--accent-soft); color: var(--accent); }
+  .t-result { background: var(--card); border-radius: 18px; padding: 28px 16px; text-align: center; box-shadow: var(--shadow); animation: pop .35s ease both; }
+  .t-score { font-size: 44px; font-weight: 800; color: var(--accent); }
+  .t-pct { margin-top: 6px; font-size: 18px; font-weight: 600; }
+  .t-msg { margin-top: 10px; color: var(--muted); font-size: 15px; line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -179,7 +195,7 @@
       "Салат из рукколы с манго и медовой уткой": { composition: "Руккола, манго, утиная грудка в мёде, черри", sauces: "Медово-горчичная заправка", allergens: "Горчица" },
       "Салат Нисуаз с тунцом и фирменной заправкой": { composition: "Тунец, картофель, стручковая фасоль, яйцо, черри, маслины, анчоусы, салатный микс", sauces: "Фирменная заправка", allergens: "Рыба, яйцо, горчица" },
       "Салат Цезарь с курицей": { composition: "Романо, куриное филе, пармезан, гренки, черри", sauces: "Соус цезарь", allergens: "Глютен, яйцо, молоко, рыба" },
-      "Салат Капрезе": { composition: "Томаты, моцарелла, базилик", sauces: "Оливковое масло, бальзамик", allergens: "Молоко" },
+      "Салат Капрезе": { composition: "Томаты, моцарелла, базилик, орехи", sauces: "Оливковое масло, бальзамик", allergens: "Молоко, орехи" },
       "Салат из баклажанов в кисло-сладком соусе": { composition: "Жареные баклажаны, болгарский перец, томаты, чеснок, кинза, кунжут", sauces: "Кисло-сладкий соус", allergens: "Соя, кунжут" }
     },
     "Супы": {
@@ -389,6 +405,58 @@ const BAR_MENU = {
     ]
   };
 
+  // Банк вопросов теста кухни (48). answer — номер правильного варианта (с 0). Варианты перемешиваются при каждом запуске.
+  const KITCHEN_TEST = [
+    {"q": "Какой ингредиент входит в состав блюда «Антипасти (камамбер, дорблю, пармезан)»?", "options": ["Курица", "Ветчина", "Кабачок", "Виноград"], "answer": 3},
+    {"q": "Какой ингредиент входит в состав блюда «Салат Цезарь с курицей»?", "options": ["Ветчина", "Гренки", "Сельдерей", "Курица"], "answer": 1},
+    {"q": "Какой ингредиент входит в состав блюда «Салат Нисуаз с тунцом и фирменной заправкой»?", "options": ["Анчоусы", "Сельдерей", "Авокадо", "Шоколад"], "answer": 0},
+    {"q": "Какой ингредиент входит в состав блюда «Салат Капрезе»?", "options": ["Горгонзола", "Орехи", "Сельдерей", "Ветчина"], "answer": 1},
+    {"q": "Какой ингредиент входит в состав блюда «Том Ям с морепродуктами»?", "options": ["Кокосовое молоко", "Ананас", "Тыква", "Кабачок"], "answer": 0},
+    {"q": "Какие аллергены содержатся в салате Капрезе?", "options": ["Только молоко", "Молоко и глютен", "Молоко и орехи", "Орехи и яйцо"], "answer": 2},
+    {"q": "Какой ингредиент входит в состав блюда «Борщ с томлёной говядиной, подаётся с салом и сметаной»?", "options": ["Свёкла", "Ветчина", "Кабачок", "Цветная капуста"], "answer": 0},
+    {"q": "Какой ингредиент входит в состав блюда «Жюльен грибной»?", "options": ["Шоколад", "Шампиньоны", "Ветчина", "Кабачок"], "answer": 1},
+    {"q": "Какой ингредиент входит в состав блюда «Салат из рукколы с манго и медовой уткой»?", "options": ["Черри", "Шоколад", "Рис", "Ветчина"], "answer": 0},
+    {"q": "Какой ингредиент входит в состав блюда «Тирамису»?", "options": ["Тыква", "Печенье савоярди", "Цветная капуста", "Курица"], "answer": 1},
+    {"q": "Какой ингредиент входит в состав блюда «Чёрный бургер с говядиной и фри»?", "options": ["Маринованный огурец", "Рис", "Авокадо", "Горгонзола"], "answer": 0},
+    {"q": "Какой ингредиент входит в состав блюда «Карбонара»?", "options": ["Пармезан", "Горгонзола", "Авокадо", "Ананас"], "answer": 0},
+    {"q": "Какой ингредиент входит в состав блюда «Стейк Рибай с запечёнными томатами»?", "options": ["Рис", "Горгонзола", "Ветчина", "Розмарин"], "answer": 3},
+    {"q": "Какого ингредиента НЕТ в составе блюда «Салат Цезарь с курицей»?", "options": ["Бекон", "Пармезан", "Черри", "Романо"], "answer": 0},
+    {"q": "Какого ингредиента НЕТ в составе блюда «Борщ с томлёной говядиной, подаётся с салом и сметаной»?", "options": ["Рис", "Картофель", "Свёкла", "Томлёная говядина"], "answer": 0},
+    {"q": "Какого ингредиента НЕТ в составе блюда «Том Ям с морепродуктами»?", "options": ["Чили", "Грибы", "Креветки", "Курица"], "answer": 3},
+    {"q": "Какого ингредиента НЕТ в составе блюда «Тирамису»?", "options": ["Какао", "Маскарпоне", "Шоколад", "Кофе"], "answer": 2},
+    {"q": "Какого ингредиента НЕТ в составе блюда «Жюльен грибной»?", "options": ["Сыр", "Ветчина", "Шампиньоны", "Сливки"], "answer": 1},
+    {"q": "Какой соус подаётся к блюду «Вителло-тоннато»?", "options": ["Сливочно-винный соус", "Тунцовый соус тоннато", "Медовая глазурь", "Паста том ям"], "answer": 1},
+    {"q": "Какой соус подаётся к блюду «Салат Цезарь с курицей»?", "options": ["Чесночный соус", "Медовая глазурь", "Соус цезарь", "Сырный соус"], "answer": 2},
+    {"q": "Какой соус подаётся к блюду «Карбонара»?", "options": ["Соус карбонара", "Кисло-сладкий соус", "Сладкий соус чили", "Соус Том Ям"], "answer": 0},
+    {"q": "Какой соус подаётся к блюду «Утиная грудка Монморанси»?", "options": ["Сливочный соус", "Соевый соус", "Вишнёвый соус Монморанси", "Паста том ям"], "answer": 2},
+    {"q": "Какой соус подаётся к блюду «Куриные наггетсы (подаются с кетчупом)»?", "options": ["Кетчуп", "Соус цезарь", "Карамельный соус", "Сырный соус"], "answer": 0},
+    {"q": "Какой соус подаётся к блюду «Сырные шарики с соусом чили»?", "options": ["Медово-горчичная заправка", "Сладкий соус чили", "Фирменный соус", "Соус цезарь"], "answer": 1},
+    {"q": "Какой соус подаётся к блюду «Свиные рёбрышки в медовой глазури»?", "options": ["Медовая глазурь", "Сырный соус", "Медово-горчичная заправка", "Сметана"], "answer": 0},
+    {"q": "Какой соус подаётся к блюду «Стейк из лосося с рисовыми чипсами и соусом Том Ям»?", "options": ["Соус Том Ям", "Вишнёвый соус Монморанси", "Чесночный соус", "Сладкий соус чили"], "answer": 0},
+    {"q": "Какие аллергены содержатся в блюде «Салат Цезарь с курицей»?", "options": ["Молоко, глютен, соя, рыба", "Глютен, яйцо, молоко, рыба", "Молоко, рыба, яйцо", "Глютен, рыба, ракообразные, яйцо"], "answer": 1},
+    {"q": "Какие аллергены содержатся в блюде «Карбонара»?", "options": ["Молоко, яйцо", "Молоко, кунжут, глютен, яйцо", "Глютен, яйцо, молоко", "Яйцо, глютен"], "answer": 2},
+    {"q": "Какие аллергены содержатся в блюде «Жюльен грибной»?", "options": ["Молоко", "Моллюски, глютен, молоко", "Молоко, глютен", "Глютен, горчица"], "answer": 2},
+    {"q": "Какие аллергены содержатся в блюде «Том Ям с морепродуктами»?", "options": ["Моллюски, ракообразные, глютен", "Ракообразные, моллюски", "Рыба, моллюски, кунжут, ракообразные", "Ракообразные, моллюски, рыба"], "answer": 3},
+    {"q": "Какие аллергены содержатся в блюде «Салат Нисуаз с тунцом и фирменной заправкой»?", "options": ["Моллюски, рыба, яйцо, горчица", "Сульфиты, рыба, яйцо", "Горчица, яйцо", "Рыба, яйцо, горчица"], "answer": 3},
+    {"q": "Какие аллергены содержатся в блюде «Чёрный бургер с говядиной и фри»?", "options": ["Горчица, яйцо, молоко, кунжут, моллюски, глютен", "Глютен, молоко, яйцо, горчица, кунжут", "Глютен, яйцо, молоко, ракообразные, кунжут, горчица", "Яйцо, рыба, молоко, горчица, глютен"], "answer": 1},
+    {"q": "Какие аллергены содержатся в блюде «Мидии в соусе белое вино»?", "options": ["Моллюски, молоко, сульфиты", "Сульфиты, молоко", "Молоко, моллюски", "Моллюски, молоко, сульфиты, горчица"], "answer": 0},
+    {"q": "В каком блюде содержится аллерген «сульфиты»?", "options": ["Гренки чесночные", "Макароны с сыром", "Мидии в соусе белое вино", "Салат Цезарь с курицей"], "answer": 2},
+    {"q": "В каком блюде содержится аллерген «моллюски»?", "options": ["Мидии в соусе белое вино", "Утиная грудка Монморанси", "Борщ с томлёной говядиной, подаётся с салом и сметаной", "Карбонара"], "answer": 0},
+    {"q": "В каком блюде содержится аллерген «кунжут»?", "options": ["Карбонара", "Карпаччо из тунца с соевым соусом и салатом чука", "Борщ с томлёной говядиной, подаётся с салом и сметаной", "Том Ям с морепродуктами"], "answer": 1},
+    {"q": "В каком блюде содержится аллерген «орехи»?", "options": ["Нежное филе лосося шеф-посола", "Антипасти (камамбер, дорблю, пармезан)", "Стейк из лосося с рисовыми чипсами и соусом Том Ям", "Макароны с сыром"], "answer": 1},
+    {"q": "В каком блюде содержится аллерген «горчица»?", "options": ["Мороженое", "Стейк Рибай с запечёнными томатами", "Деревенское сало с горчицей и бородинскими ломтиками", "Макароны с сыром"], "answer": 2},
+    {"q": "Какое из блюд не содержит аллергенов?", "options": ["Деревенское сало с горчицей и бородинскими ломтиками", "Томлёный телячий язык с хреном", "Чёрный бургер с говядиной и фри", "Яблочный штрудель с карамельным мороженым"], "answer": 1},
+    {"q": "Какое из блюд не содержит аллергенов?", "options": ["Стейк из лосося с рисовыми чипсами и соусом Том Ям", "Запечённые овощи на гриле", "Свиные рёбрышки в медовой глазури", "Стейк Рибай с запечёнными томатами"], "answer": 1},
+    {"q": "К какому блюду подаётся «Кетчуп»?", "options": ["Борщ с томлёной говядиной, подаётся с салом и сметаной", "Куриные наггетсы (подаются с кетчупом)", "Гренки чесночные", "Окрошка (на выбор квас/кефир)"], "answer": 1},
+    {"q": "К какому блюду подаётся «Соус карбонара»?", "options": ["Жюльен грибной", "Карбонара", "Тирамису", "Картофельное пюре"], "answer": 1},
+    {"q": "К какому блюду подаётся «Карамельный соус»?", "options": ["Яблочный штрудель с карамельным мороженым", "Салат Цезарь с курицей", "Том Ям с морепродуктами", "Чизкейк"], "answer": 0},
+    {"q": "К какому блюду подаётся «Сливочно-винный соус»?", "options": ["Карпаччо из тунца с соевым соусом и салатом чука", "Мидии в соусе белое вино", "Яблочный штрудель с карамельным мороженым", "Картофельное пюре"], "answer": 1},
+    {"q": "В каком блюде есть ингредиент «Маринованный огурец»?", "options": ["Салат из баклажанов в кисло-сладком соусе", "Томлёный телячий язык с хреном", "Чёрный бургер с говядиной и фри", "Тирамису"], "answer": 2},
+    {"q": "В каком блюде есть ингредиент «Макароны»?", "options": ["Куриные наггетсы (подаются с кетчупом)", "Макароны с сыром", "Мороженое", "Картофель фри"], "answer": 1},
+    {"q": "В каком блюде есть ингредиент «Карамельное мороженое»?", "options": ["Салат Капрезе", "Филе-миньон (подаётся с запечёнными овощами и ягодным соусом)", "Яблочный штрудель с карамельным мороженым", "Гренки чесночные"], "answer": 2},
+    {"q": "В каком блюде есть ингредиент «Моцарелла»?", "options": ["Карбонара", "Салат Капрезе", "Картофельное пюре", "Салат Цезарь с курицей"], "answer": 1}
+  ];
+
   // Иконка и цвет для каждого раздела. Название должно совпадать с MENU.
   // Если раздела здесь нет, он получит иконку и цвет по умолчанию.
   const STYLES = {
@@ -416,6 +484,7 @@ const BAR_MENU = {
 
   let currentGroup = null;
   let currentCategory = null;
+  let view = "home";
 
   function countWord(n, noun) {
     const m10 = n % 10, m100 = n % 100;
@@ -439,19 +508,42 @@ const BAR_MENU = {
   }
 
   function showSections() {
+    view = "home";
     currentGroup = null;
     currentCategory = null;
     title.textContent = "Меню ресторана";
-    subtitle.textContent = "Выбери кухню или бар";
+    subtitle.textContent = "Нажми на МЕНЮ, чтобы начать";
     back.style.display = "none";
     search.style.display = "block";
     search.value = "";
     list.innerHTML = "";
     const grid = document.createElement("div");
     grid.className = "grid";
+    const card = makeSectionCard("🍴", "#e07a3f", "МЕНЮ", "Кухня · Бар · Тестирование", showMenuRoot, 0);
+    card.classList.add("wide");
+    grid.appendChild(card);
+    list.appendChild(grid);
+  }
+
+  function showMenuRoot() {
+    view = "root";
+    currentGroup = null;
+    currentCategory = null;
+    title.textContent = "🍴 Меню";
+    subtitle.textContent = "Выбери раздел";
+    back.style.display = "inline-block";
+    back.textContent = "← Назад";
+    search.style.display = "none";
+    list.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "grid";
     grid.appendChild(makeSectionCard("🍽️", "#b5543a", "Кухня", countWord(Object.values(MENU).reduce((n, section) => n + Object.keys(section).length, 0), "блюдо"), function () { showCategories("kitchen"); }, 0));
     grid.appendChild(makeSectionCard("🍸", "#3d8fc4", "Бар", countWord(Object.values(BAR_MENU).reduce((n, items) => n + items.length, 0), "позиция"), function () { showCategories("bar"); }, 1));
+    const t = makeSectionCard("📝", "#7a6bd1", "Тестирование", "Проверь свои знания", showTesting, 2);
+    t.classList.add("wide");
+    grid.appendChild(t);
     list.appendChild(grid);
+    window.scrollTo(0, 0);
   }
 
   function showCategories(group) {
@@ -568,6 +660,129 @@ const BAR_MENU = {
     window.scrollTo(0, 0);
   }
 
+  // ============ ТЕСТИРОВАНИЕ ============
+  const TEST_LENGTH = 10;
+  let test = null;
+
+  function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function showTesting() {
+    view = "testing";
+    currentGroup = null;
+    currentCategory = null;
+    title.textContent = "📝 Тестирование";
+    subtitle.textContent = "Выбери тест";
+    back.style.display = "inline-block";
+    back.textContent = "← Назад";
+    search.style.display = "none";
+    list.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    grid.appendChild(makeSectionCard("🍽️", "#b5543a", "Тест кухни", TEST_LENGTH + " случайных вопросов", startKitchenTest, 0));
+    const bar = makeSectionCard("🍸", "#3d8fc4", "Тест бара", "Скоро", null, 1);
+    bar.classList.add("disabled");
+    grid.appendChild(bar);
+    list.appendChild(grid);
+    window.scrollTo(0, 0);
+  }
+
+  function startKitchenTest() {
+    const picked = shuffle(KITCHEN_TEST.slice()).slice(0, TEST_LENGTH);
+    test = {
+      idx: 0, score: 0, answered: false,
+      items: picked.map(function (q) {
+        return { q: q.q, correct: q.options[q.answer], options: shuffle(q.options.slice()) };
+      })
+    };
+    renderQuestion();
+  }
+
+  function makeButton(cls, text, onClick) {
+    const b = document.createElement("button");
+    b.className = cls;
+    b.textContent = text;
+    b.onclick = onClick;
+    return b;
+  }
+
+  function renderQuestion() {
+    view = "test";
+    const item = test.items[test.idx];
+    const total = test.items.length;
+    title.textContent = "📝 Тест кухни";
+    subtitle.textContent = "Вопрос " + (test.idx + 1) + " из " + total;
+    back.style.display = "inline-block";
+    back.textContent = "← К тестам";
+    search.style.display = "none";
+    list.innerHTML = "";
+    const prog = document.createElement("div");
+    prog.className = "t-progress";
+    const bar = document.createElement("div");
+    bar.className = "t-bar";
+    bar.style.width = (test.idx / total * 100) + "%";
+    prog.appendChild(bar);
+    list.appendChild(prog);
+    const q = document.createElement("div");
+    q.className = "t-q";
+    q.textContent = item.q;
+    list.appendChild(q);
+    const next = makeButton("t-next", test.idx === total - 1 ? "Показать результат" : "Далее →", function () {
+      test.idx++;
+      test.answered = false;
+      if (test.idx >= total) showTestResult(); else renderQuestion();
+    });
+    next.style.display = "none";
+    const btns = [];
+    item.options.forEach(function (text) {
+      const b = makeButton("t-opt", text, function () {
+        if (test.answered) return;
+        test.answered = true;
+        if (text === item.correct) test.score++;
+        btns.forEach(function (x) {
+          if (x.textContent === item.correct) x.classList.add("right");
+          else if (x === b) x.classList.add("wrong");
+        });
+        bar.style.width = ((test.idx + 1) / total * 100) + "%";
+        next.style.display = "block";
+      });
+      btns.push(b);
+      list.appendChild(b);
+    });
+    list.appendChild(next);
+    window.scrollTo(0, 0);
+  }
+
+  function showTestResult() {
+    view = "test";
+    const total = test.items.length;
+    const pct = Math.round(test.score / total * 100);
+    title.textContent = "🏁 Результат";
+    subtitle.textContent = "Тест кухни завершён";
+    list.innerHTML = "";
+    const box = document.createElement("div");
+    box.className = "t-result";
+    const big = document.createElement("div");
+    big.className = "t-score";
+    big.textContent = test.score + " из " + total;
+    const p = document.createElement("div");
+    p.className = "t-pct";
+    p.textContent = pct + "% правильных ответов";
+    const msg = document.createElement("div");
+    msg.className = "t-msg";
+    msg.textContent = pct >= 90 ? "Отлично! Меню знаешь как профи." : pct >= 70 ? "Хороший результат, осталось чуть-чуть." : pct >= 50 ? "Неплохо, но стоит повторить меню." : "Стоит ещё раз изучить меню и попробовать снова.";
+    box.appendChild(big); box.appendChild(p); box.appendChild(msg);
+    list.appendChild(box);
+    list.appendChild(makeButton("t-next", "🔁 Пройти ещё раз", startKitchenTest));
+    list.appendChild(makeButton("t-next t-ghost", "К тестам", showTesting));
+    window.scrollTo(0, 0);
+  }
+
   search.addEventListener("input", function () {
     const q = search.value.trim().toLowerCase();
     if (!q) { showSections(); return; }
@@ -598,7 +813,10 @@ const BAR_MENU = {
   });
 
   back.onclick = function () {
-    if (currentCategory !== null) showCategories(currentGroup);
+    if (view === "test") showTesting();
+    else if (view === "testing") showMenuRoot();
+    else if (currentCategory !== null) showCategories(currentGroup);
+    else if (currentGroup !== null) showMenuRoot();
     else showSections();
   };
   showSections();
