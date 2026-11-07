@@ -109,7 +109,7 @@
     transition: max-height .35s ease;
     padding: 0 16px;
   }
-  .dish.open .dish-body { max-height: 600px; padding-bottom: 16px; }
+  .dish.open .dish-body { max-height: 1200px; padding-bottom: 16px; }
   .label {
     margin-top: 12px;
     font-size: 12px;
@@ -159,7 +159,7 @@
 <body>
 <div class="top">
   <h1 id="title">Меню ресторана</h1>
-  <p id="subtitle">Выбери кухню или бар</p>
+  <p id="subtitle">Выбери нужный раздел</p>
 </div>
 <div class="wrap">
   <button id="back">← Назад к разделам</button>
@@ -512,7 +512,7 @@ const BAR_MENU = {
     currentGroup = null;
     currentCategory = null;
     title.textContent = "Меню ресторана";
-    subtitle.textContent = "Нажми на МЕНЮ, чтобы начать";
+    subtitle.textContent = "Выбери нужный раздел";
     back.style.display = "none";
     search.style.display = "block";
     search.value = "";
@@ -520,8 +520,9 @@ const BAR_MENU = {
     const grid = document.createElement("div");
     grid.className = "grid";
     const card = makeSectionCard("🍴", "#e07a3f", "МЕНЮ", "Кухня · Бар · Тестирование", showMenuRoot, 0);
-    card.classList.add("wide");
     grid.appendChild(card);
+    const service = makeSectionCard("🤝", "#56866b", "Правила сервиса", "Основы обслуживания гостей", showServiceRules, 1);
+    grid.appendChild(service);
     list.appendChild(grid);
   }
 
@@ -543,6 +544,116 @@ const BAR_MENU = {
     t.classList.add("wide");
     grid.appendChild(t);
     list.appendChild(grid);
+    window.scrollTo(0, 0);
+  }
+
+
+  // ============ СТАНДАРТЫ СЕРВИСА ============
+  const SERVICE_RULES = [
+    {
+      title: "1. Встреча и приветствие гостя",
+      text: "Заметь гостя, установи доброжелательный зрительный контакт и поздоровайся. Если занят — дай понять, что ты заметил гостя, и подойди при первой возможности. Не заставляй гостя ждать в неопределённости.",
+      tip: "Начни спокойно и приветливо. Не перебивай разговор за столом и не здоровайся через весь зал."
+    },
+    {
+      title: "2. Первичный контакт и меню",
+      text: "Представься, если это принято в заведении, предложи меню и коротко сориентируй гостя: где находятся основные разделы, какие позиции особенно популярны и сколько примерно занимает приготовление, если это известно.",
+      tip: "Не пересказывай всё меню подряд. Сначала выясни, нужна ли гостю помощь с выбором."
+    },
+    {
+      title: "3. Выявление предпочтений",
+      text: "Задавай уместные открытые вопросы: «Предпочитаете что-нибудь полегче или посытнее?», «Есть продукты, которые вы не едите?», «Хотите сначала напитки или уже готовы выбрать блюда?». Внимательно выслушай ответ.",
+      tip: "Уточняй ограничения по питанию и аллергии до рекомендации. Не обещай отсутствие аллергена, пока не проверил информацию у ответственного сотрудника."
+    },
+    {
+      title: "4. Рекомендации и дополнительные продажи",
+      text: "Предлагай то, что действительно дополняет выбор гостя: подходящий напиток, гарнир, соус, закуску или десерт. Объясняй пользу сочетания коротко и конкретно. Например: «К этому сыру хорошо подойдёт сухое белое вино с хорошей кислотностью» или «К этому мясу могу предложить насыщенное красное».",
+      tip: "Предложение должно помогать гостю, а не звучать как давление. Учитывай вкус, бюджет и уже сделанный заказ. Не навязывай добавки."
+    },
+    {
+      title: "5. Знание сочетаний блюд и напитков",
+      text: "Ориентируйся в базовых принципах: к более насыщенному мясу часто подходят структурные красные вина; к рыбе и лёгким блюдам — белые или розовые; к солёным и сливочным сырам часто подходят вина с хорошей кислотностью. Сладость вина должна учитывать сладость блюда. Это ориентиры, а не строгие правила.",
+      tip: "Уточняй стиль блюда, соус и способ приготовления: именно они часто влияют на сочетание сильнее, чем основной продукт. Если сомневаешься — посоветуйся с барменом или менеджером."
+    },
+    {
+      title: "6. Приём и подтверждение заказа",
+      text: "Записывай заказ последовательно и внимательно. Уточняй степень прожарки, гарниры, соусы, объём напитков и особые пожелания там, где это предусмотрено меню. Повтори заказ гостю, чтобы исключить ошибки. Отдельно отметь аллергии и важные ограничения и передай их по установленному в заведении процессу.",
+      tip: "Не полагайся на память. Если просьба гостя невыполнима или требует уточнения — честно скажи об этом до отправки заказа."
+    },
+    {
+      title: "7. Подача блюд и напитков",
+      text: "По возможности подходи к гостю с правой стороны, если это не мешает ему и безопасно в конкретной обстановке. Не тянись через гостя и не заслоняй ему обзор. Держи посуду устойчиво, не касайся краёв бокалов и поверхностей, соприкасающихся с едой. Называй блюдо или напиток при подаче.",
+      tip: "Следи за положением рук и локтей: не направляй локоть в лицо гостю, не нависай над ним и не ставь предметы через чужие руки."
+    },
+    {
+      title: "8. Контроль стола во время обслуживания",
+      text: "Наблюдай за столом ненавязчиво: проверяй, всё ли в порядке, вовремя убирай пустую посуду с разрешения или по стандарту заведения, следи за напитками и дополнительными просьбами. Не прерывай беседу без необходимости.",
+      tip: "Лучше заметить потребность заранее, чем ждать, пока гость будет вынужден искать официанта взглядом."
+    },
+    {
+      title: "9. Общение и решение проблем",
+      text: "Сохраняй спокойствие, выслушай гостя до конца и не спорь. Признай неудобство, уточни, как можно исправить ситуацию, и оперативно подключи менеджера, если вопрос выходит за пределы твоих полномочий.",
+      tip: "Не обвиняй коллег и кухню при госте. Не обещай того, что не можешь гарантировать."
+    },
+    {
+      title: "10. Завершение обслуживания",
+      text: "Уточни, всё ли понравилось, предложи подходящий десерт или горячий напиток, если это уместно. При расчёте действуй внимательно и конфиденциально. Поблагодари гостя и попрощайся доброжелательно.",
+      tip: "Даже короткое искреннее «Спасибо, будем рады видеть вас снова» помогает завершить визит на хорошей ноте."
+    }
+  ];
+
+  function makeRuleCard(rule, delay) {
+    const card = document.createElement("div");
+    card.className = "dish";
+    card.style.animationDelay = (delay * 0.04) + "s";
+    const head = document.createElement("div");
+    head.className = "dish-head";
+    const name = document.createElement("span");
+    name.textContent = rule.title;
+    const arrow = document.createElement("span");
+    arrow.className = "arrow";
+    arrow.textContent = "⌄";
+    head.appendChild(name);
+    head.appendChild(arrow);
+
+    const body = document.createElement("div");
+    body.className = "dish-body";
+    const description = document.createElement("div");
+    description.className = "value";
+    description.textContent = rule.text;
+    const label = document.createElement("div");
+    label.className = "label";
+    label.textContent = "Мини-подсказка";
+    const tip = document.createElement("div");
+    tip.className = "value";
+    tip.textContent = rule.tip;
+    body.appendChild(description);
+    body.appendChild(label);
+    body.appendChild(tip);
+    card.appendChild(head);
+    card.appendChild(body);
+    head.onclick = function () { card.classList.toggle("open"); };
+    return card;
+  }
+
+  function showServiceRules() {
+    view = "service";
+    currentGroup = null;
+    currentCategory = null;
+    title.textContent = "🤝 Правила сервиса";
+    subtitle.textContent = "Основы обслуживания гостей";
+    back.style.display = "inline-block";
+    back.textContent = "← На главную";
+    search.style.display = "none";
+    list.innerHTML = "";
+    const intro = document.createElement("div");
+    intro.className = "value";
+    intro.style.margin = "4px 2px 12px";
+    intro.textContent = "Общие ориентиры для работы официанта. Внутренние правила и порядок работы вашего заведения можно будет добавить и скорректировать отдельно.";
+    list.appendChild(intro);
+    SERVICE_RULES.forEach(function (rule, i) {
+      list.appendChild(makeRuleCard(rule, i));
+    });
     window.scrollTo(0, 0);
   }
 
@@ -813,7 +924,8 @@ const BAR_MENU = {
   });
 
   back.onclick = function () {
-    if (view === "test") showTesting();
+    if (view === "service") showSections();
+    else if (view === "test") showTesting();
     else if (view === "testing") showMenuRoot();
     else if (currentCategory !== null) showCategories(currentGroup);
     else if (currentGroup !== null) showMenuRoot();
